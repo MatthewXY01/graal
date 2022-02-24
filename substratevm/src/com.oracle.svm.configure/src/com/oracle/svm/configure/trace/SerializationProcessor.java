@@ -30,23 +30,17 @@ import java.util.Map;
 
 import org.graalvm.nativeimage.impl.ConfigurationCondition;
 
-import com.oracle.svm.configure.config.SerializationConfiguration;
+import com.oracle.svm.configure.config.ConfigurationSet;
 
 public class SerializationProcessor extends AbstractProcessor {
     private final AccessAdvisor advisor;
-    private final SerializationConfiguration serializationConfiguration;
 
-    public SerializationProcessor(AccessAdvisor advisor, SerializationConfiguration serializationConfiguration) {
+    public SerializationProcessor(AccessAdvisor advisor) {
         this.advisor = advisor;
-        this.serializationConfiguration = serializationConfiguration;
-    }
-
-    public SerializationConfiguration getSerializationConfiguration() {
-        return serializationConfiguration;
     }
 
     @Override
-    void processEntry(Map<String, ?> entry) {
+    void processEntry(Map<String, ?> entry, ConfigurationSet configurationSet) {
         boolean invalidResult = Boolean.FALSE.equals(entry.get("result"));
         ConfigurationCondition condition = ConfigurationCondition.alwaysTrue();
         if (invalidResult) {
@@ -61,7 +55,7 @@ public class SerializationProcessor extends AbstractProcessor {
                 return;
             }
 
-            serializationConfiguration.registerWithTargetConstructorClass(condition, (String) args.get(0), (String) args.get(1));
+            configurationSet.getSerializationConfiguration().registerWithTargetConstructorClass(condition, (String) args.get(0), (String) args.get(1));
         }
     }
 }
