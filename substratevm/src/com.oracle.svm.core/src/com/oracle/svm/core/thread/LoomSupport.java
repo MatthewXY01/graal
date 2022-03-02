@@ -79,7 +79,7 @@ public final class LoomSupport {
             }
 
             JavaFrameAnchor anchor = JavaFrameAnchors.getFrameAnchor(vmThread);
-            if (anchor.isNonNull() && cont.internal.sp.aboveThan(anchor.getLastJavaSP())) {
+            if (anchor.isNonNull() && cont.internal.getBottomSP().aboveThan(anchor.getLastJavaSP())) {
                 return PINNED_NATIVE;
             }
         }
@@ -90,12 +90,12 @@ public final class LoomSupport {
         return cont.isStarted();
     }
 
-    public static Pointer getSP(Target_java_lang_Continuation cont) {
-        return cont.internal.sp;
+    public static Pointer getBottomSP(Target_java_lang_Continuation cont) {
+        return cont.internal.getBottomSP();
     }
 
     public static CodePointer getIP(Target_java_lang_Continuation cont) {
-        return cont.internal.ip;
+        return cont.internal.getIP();
     }
 
     /**
