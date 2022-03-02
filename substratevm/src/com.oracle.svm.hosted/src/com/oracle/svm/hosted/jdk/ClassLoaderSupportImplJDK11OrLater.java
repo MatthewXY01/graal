@@ -89,7 +89,7 @@ public final class ClassLoaderSupportImplJDK11OrLater extends ClassLoaderSupport
                     continue;
                 }
                 try (InputStream is = content.get()) {
-                    resourceCollector.addResource(moduleName, resName, is);
+                    resourceCollector.addResource(moduleName, resName, is, false);
                 }
             }
         } catch (IOException e) {
