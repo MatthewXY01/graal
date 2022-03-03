@@ -1600,6 +1600,7 @@ suite = {
             "description" : "Native-image based junit testing support",
             "layout" : {
                 "native-image.properties" : "file:mx.substratevm/macro-junit.properties",
+                "svm-junit.packages" : "file:mx.substratevm/svm-junit.packages",
             },
         },
 
@@ -1608,6 +1609,7 @@ suite = {
             "description" : "Native-image based junit testing support but with running image-builder on classpath",
             "layout" : {
                 "native-image.properties" : "file:mx.substratevm/macro-junitcp.properties",
+                "svm-junit.packages" : "file:mx.substratevm/svm-junit.packages",
             },
         },
 
