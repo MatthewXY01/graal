@@ -141,6 +141,11 @@ public final class StackOverflowCheckImpl implements StackOverflowCheck {
     }
 
     @Override
+    public boolean isWithinBounds(UnsignedWord address) {
+        return stackBoundaryTL.get().belowOrEqual(address) && VMThreads.StackBase.get().aboveOrEqual(address);
+    }
+
+    @Override
     public int getState() {
         return yellowZoneStateTL.get();
     }

@@ -32,6 +32,7 @@ import org.graalvm.word.WordFactory;
 
 import com.oracle.svm.core.SubstrateOptions;
 import com.oracle.svm.core.SubstrateUtil;
+import com.oracle.svm.core.UnmanagedMemoryUtil;
 import com.oracle.svm.core.annotate.NeverInline;
 import com.oracle.svm.core.annotate.StubCallingConvention;
 import com.oracle.svm.core.annotate.Uninterruptible;
@@ -129,13 +130,14 @@ public final class Continuation {
             assert this.stored != null;
             assert this.ip.isNonNull();
 
-            byte[] buf = StoredContinuationImpl.allocateBuf(this.stored);
-            StoredContinuationImpl.writeBuf(this.stored, buf);
-
-            // TODO: this is lacking stack overflow checks.
-            for (int i = 0; i < buf.length; i++) {
-                currentSP.writeByte(i - buf.length, buf[i]);
+            int totalSize = StoredContinuationImpl.readAllFrameSize(stored);
+            Pointer topSP = currentSP.subtract(totalSize);
+            if (!StackOverflowCheck.singleton().isWithinBounds(topSP)) {
+                throw new StackOverflowError();
             }
+
+            Pointer frameStart = StoredContinuationImpl.payloadFrameStart(stored);
+            UnmanagedMemoryUtil.copy(frameStart, topSP, WordFactory.unsigned(totalSize));
 
             CodePointer storedIP = this.ip;
 
@@ -143,7 +145,7 @@ public final class Continuation {
             this.ip = callerIP;
             this.sp = callerSP;
             this.bottomSP = currentSP;
-            KnownIntrinsics.farReturn(0, currentSP.subtract(buf.length), storedIP, false);
+            KnownIntrinsics.farReturn(0, topSP, storedIP, false);
             throw VMError.shouldNotReachHere();
 
         } else {
