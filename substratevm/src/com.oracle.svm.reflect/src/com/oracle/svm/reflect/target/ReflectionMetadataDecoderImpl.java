@@ -258,11 +258,12 @@ public class ReflectionMetadataDecoderImpl implements ReflectionMetadataDecoder 
         }
         boolean complete = (modifiers & COMPLETE_FLAG_MASK) != 0;
         boolean hiding = (modifiers & HIDING_FLAG_MASK) != 0;
+        assert !(complete && hiding);
         modifiers &= ~COMPLETE_FLAG_MASK;
 
         String name = isMethod ? decodeName(buf, info) : null;
         Class<?>[] parameterTypes = decodeArray(buf, Class.class, (i) -> decodeType(buf, info));
-        Class<?> returnType = isMethod && hiding ? decodeType(buf, info) : null;
+        Class<?> returnType = isMethod ? decodeType(buf, info) : null;
         if (!complete) {
             if (reflectOnly != hiding) {
                 /*
@@ -282,8 +283,6 @@ public class ReflectionMetadataDecoderImpl implements ReflectionMetadataDecoder 
                 return SubstrateUtil.cast(constructor, Executable.class);
             }
         }
-        assert !hiding;
-        returnType = isMethod ? decodeType(buf, info) : null;
         Class<?>[] exceptionTypes = decodeArray(buf, Class.class, (i) -> decodeType(buf, info));
         String signature = decodeName(buf, info);
         byte[] annotations = decodeByteArray(buf);

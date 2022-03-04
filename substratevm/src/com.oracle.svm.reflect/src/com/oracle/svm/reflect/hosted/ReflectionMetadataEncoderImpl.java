@@ -548,6 +548,7 @@ public class ReflectionMetadataEncoderImpl implements ReflectionMetadataEncoder 
         HostedType declaringType = method.getDeclaringClass();
         String name = isMethod ? method.getName() : null;
         HostedType[] parameterTypes = getParameterTypes(method);
+        HostedType returnType = (HostedType) method.getSignature().getReturnType(null);
         int modifiers = method.getModifiers();
 
         /* Fill encoders with the necessary values. */
@@ -557,9 +558,10 @@ public class ReflectionMetadataEncoderImpl implements ReflectionMetadataEncoder 
         for (HostedType parameterType : parameterTypes) {
             encoders.sourceClasses.addObject(parameterType.getJavaClass());
         }
+        encoders.sourceClasses.addObject(returnType.getJavaClass());
 
         if (isMethod) {
-            registerMethod(declaringType, new MethodMetadata(false, declaringType, name, parameterTypes, modifiers, null));
+            registerMethod(declaringType, new MethodMetadata(false, declaringType, name, parameterTypes, modifiers, returnType));
         } else {
             registerConstructor(declaringType, new ConstructorMetadata(declaringType, parameterTypes, modifiers));
         }
@@ -799,7 +801,7 @@ public class ReflectionMetadataEncoderImpl implements ReflectionMetadataEncoder 
                 encodeName(buf, ((MethodMetadata) executable).name);
             }
             encodeArray(buf, executable.parameterTypes, parameterType -> encodeType(buf, parameterType));
-            if (isMethod && (executable.complete || ((MethodMetadata) executable).hiding)) {
+            if (isMethod) {
                 encodeType(buf, ((MethodMetadata) executable).returnType);
             }
             if (executable.complete) {
@@ -1154,6 +1156,8 @@ public class ReflectionMetadataEncoderImpl implements ReflectionMetadataEncoder 
                 buf.putU1(THROWS);
                 buf.putU2(targetInfo.getCount());
                 break;
+            default:
+                throw GraalError.shouldNotReachHere("Unknown type annotation target: " + targetInfo.getTarget());
         }
     }
 

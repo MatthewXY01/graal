@@ -463,6 +463,7 @@ public class ReflectionDataBuilder extends ConditionalConfigurationRegistry impl
         for (JavaType paramType : analysisMethod.toParameterTypes()) {
             makeAnalysisTypeReachable(access, (AnalysisType) paramType);
         }
+        makeAnalysisTypeReachable(access, (AnalysisType) analysisMethod.getSignature().getReturnType(null));
     }
 
     private void makeTypeReachable(DuringAnalysisAccessImpl access, Type type) {

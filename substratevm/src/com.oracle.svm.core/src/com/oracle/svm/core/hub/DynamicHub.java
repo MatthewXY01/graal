@@ -1034,6 +1034,9 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
     @KeepOriginal
     private static native Field searchFields(Field[] fields, String name);
 
+    /**
+     * @see #filterHidingMethods(Method...)
+     */
     @Substitute
     private static Method searchMethods(Method[] allMethods, String name, Class<?>[] parameterTypes) {
         Method[] methods = filterHidingMethods(allMethods);
@@ -1057,6 +1060,9 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
     @KeepOriginal
     private static native Field[] copyFields(Field[] arg);
 
+    /**
+     * @see #filterHidingMethods(Method...)
+     */
     @Substitute
     private static Method[] copyMethods(Method[] original) {
         Method[] arg = filterHidingMethods(original);
@@ -1235,6 +1241,9 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
         /* See open/src/hotspot/share/prims/jvm.cpp#1522. */
     }
 
+    /**
+     * @see #filterHidingMethods(Method...)
+     */
     @Substitute //
     @SuppressWarnings({"unused"})
     List<Method> getDeclaredPublicMethods(String methodName, Class<?>... parameterTypes) {
@@ -1476,6 +1485,11 @@ public final class DynamicHub implements JavaKind.FormatWithToString, AnnotatedE
     @KeepOriginal
     native AnnotationType getAnnotationType();
 
+    /*
+     * We need to filter out hiding methods at the last moment. This ensures that the JDK internals
+     * see them as regular methods and ensure the visibility of methods is correct, but they should
+     * not be returned to application code.
+     */
     private static Method[] filterHidingMethods(Method... methods) {
         List<Method> filtered = new ArrayList<>();
         for (Method method : methods) {
