@@ -150,12 +150,12 @@ public final class Resources {
         return new String(NativeImageResourcePath.getResolved(path));
     }
 
-    private static boolean shouldAppendTrailingSlash(String resourceName) {
+    private static boolean hasTrailingSlash(String resourceName) {
         return resourceName.endsWith("/");
     }
 
     private static String removeTrailingSlash(String resourceName) {
-        return resourceName.endsWith("/") ? resourceName.substring(0, resourceName.length() - 1) : resourceName;
+        return hasTrailingSlash(resourceName) ? resourceName.substring(0, resourceName.length() - 1) : resourceName;
     }
 
     private static boolean wasAlreadyInCanonicalForm(String resourceName, String canonicalResourceName) {
@@ -169,12 +169,24 @@ public final class Resources {
     public static ResourceStorageEntry get(String moduleName, String resourceName) {
         String canonicalResourceName = toCanonicalForm(resourceName);
         ResourceStorageEntry entry = singleton().resources.get(Pair.create(moduleName, canonicalResourceName));
-        if (entry == null || !wasAlreadyInCanonicalForm(resourceName, canonicalResourceName) && entry.isFromJar() ||
-                shouldAppendTrailingSlash(resourceName) && !entry.isDirectory()) {
+        if (entry == null) {
             return null;
-        } else {
-            return entry;
         }
+        if (entry.isFromJar() && !wasAlreadyInCanonicalForm(resourceName, canonicalResourceName)) {
+            /*
+             * The resource originally came from a jar file, thus behave like ZipFileSystem behaves
+             * for non-canonical paths.
+             */
+            return null;
+        }
+        if (!entry.isDirectory() && hasTrailingSlash(resourceName)) {
+            /*
+             * It this an actual resource file (not a directory) we do not tolerate a trailing
+             * slash.
+             */
+            return null;
+        }
+        return entry;
     }
 
     private static URL createURL(String moduleName, String resourceName, int index) {
@@ -228,7 +240,7 @@ public final class Resources {
 
         List<URL> resourcesURLs = new ArrayList<>();
         String canonicalResourceName = toCanonicalForm(resourceName);
-        boolean shouldAppendTrailingSlash = shouldAppendTrailingSlash(resourceName);
+        boolean shouldAppendTrailingSlash = hasTrailingSlash(resourceName);
         /* If moduleName was unspecified we have to consider all modules in the image */
         if (moduleName == null) {
             for (Module module : BootModuleLayerSupport.instance().getBootLayer().modules()) {
