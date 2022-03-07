@@ -449,4 +449,8 @@ public final class ImageClassLoader {
     public EconomicSet<String> packages(URI container) {
         return classLoaderSupport.packages(container);
     }
+
+    public boolean noEntryForURI(EconomicSet<String> set) {
+        return classLoaderSupport.noEntryForURI(set);
+    }
 }
